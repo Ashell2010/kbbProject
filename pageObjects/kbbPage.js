@@ -24,7 +24,31 @@ module.exports = {
         updtLast: { selector: '//input[contains(@name, "lastname")]', locateStrategy: 'xpath' },
         updtZip: { selector: '//input[contains(@name, "zipcode")]', locateStrategy: 'xpath' },
         ownVeh: '#myKBBOwn',
-        savVeh: '#myKBBSavedVehicles'
+        savVeh: '#myKBBSavedVehicles',
+        //Tony's Selectors
+        certPreOwned: '#cpoVehicle',
+        used: '#usedVehicle',
+        new: '#newVehicle',
+        carYear: '#slp-dropdown-year option[value="2015"]',
+        carMake: '#slp-dropdown-make option[value="13"]',
+        carModel: '#slp-dropdown-model option[value="journey"]',
+        carPrice: 'class="js-path-next button-one"',
+        noOptions: '[class="js-path-next-default button-four"]',
+        // valueHeader: '[class="css-j8rptd-StyledHeading1-defaultStyles-h1 e1jv8h5t0"]',
+        valueHeader: '.css-ga5hoy',
+        confYear: '[class="intent-year"]',
+        carInfo: '[class="title-three zip-geolocation__header--line-height"]',
+        carStyleConf: '[class="vehicle-title col-base-12 vertical-spacing-padding-bottom vertical-spacing-padding-top"]',
+        certPriceBtn: '[href="/dodge/journey/2015/avp-sport-utility-4d/?vehicleid=400621&intent=buy-used&mileage=64326&pricetype=cpo&condition=very-good"]',
+        // My Car Vale Selector
+        myYear: '#yearDropdown option[value="2015"]',
+        myMake: '#makeDropdown option[id="13"]',
+        myModel: '#modelDropdown option[id="14956"]',
+        // nextBtn: '//a[text()="Next"]',
+        nextBtn: { selector: '//a[text()="Next"]', locateStrategy: 'xpath' },
+        //F***ing error popup
+        popup: '#fsrInvite',
+        closePopup: '#fsrFocusFirst'
     },
     commands: [
         {
@@ -46,6 +70,7 @@ module.exports = {
         {
             logOut: function () {
                 this
+                    .pause(1000)
                     .waitForElementVisible('@loginMenu')
                     .click('@loginMenu')
                     .waitForElementVisible('@signOut')
@@ -146,6 +171,138 @@ module.exports = {
                     .click('@myAcc')
                     .waitForElementVisible('@ownVeh')
                     .click('@ownVeh')
+                return this
+            }
+        },
+        {
+            clickButtonByText: function (text) {
+                this
+                    .useXpath()
+                this
+                    .click(`//a[contains(text(), '${text}')]`)
+                    .useCss()
+                return this
+            }
+        },
+        {
+            nextButton: function (text) {
+                this
+                    .useXpath()
+                this
+                    .click(`//button[contains(text(), '${text}')]`)
+                    .useCss()
+                return this
+            }
+        },
+        {
+            styleButton: function (text) {
+                this
+                    .useXpath()
+                this
+                    .click(`//div[contains(text(), '${text}')]`)
+                    .useCss()
+                return this
+            }
+        },
+        {
+            scrollDownBy: function (pixels) {
+                this
+                    .api.execute(`window.scrollBy(0, ${pixels})`)
+                return this
+            }
+        },
+        {
+            findCarValue: function () {
+                // Get A Value Any Car
+                this
+                    .clickButtonByText('Car Values')
+                this
+                    .expect.url().to.contain('car-values')
+                this
+                    .pause(2000)
+                this
+                    .click('@certPreOwned')
+                    .click('@carYear')
+                    .click('@carMake')
+                    .click('@carModel')
+                    .pause(1000)
+                    .nextButton('Next')
+                this
+                    .waitForElementVisible('@carStyleConf')
+                    .verify.containsText('@carStyleConf', "2015 Dodge Journey")
+                    .styleButton('AVP Sport Utility 4D')
+                this
+                    .verify.containsText('@carStyleConf', "2015 Dodge Journey AVP Sport Utility 4D")
+                    .checkClick('@noOptions')
+                    .waitForElementVisible('@certPriceBtn')
+                    .scrollDownBy(500)
+                    .pause(5000)
+                    .clickButtonByText('Get a Certified Car Price')
+                this
+                    .pause(2000)
+                this
+                    .verify.containsText('@confYear', "2015")
+                    .verify.containsText('@carInfo', "Dodge Journey AVP Sport Utility 4D")
+                return this
+            }
+        },
+        {
+            myCarValue: function () {
+                // Sign In
+                this
+                    // Get A Cars Value
+                    .pause(1000)
+                    .clickButtonByText('Get a Value')
+                if (this.api.url('https://www.kbb.com/whats-my-car-worth/?ico=a')) {
+                    this.api.url('https://www.kbb.com/whats-my-car-worth/')
+                }
+                this
+                    .pause(1000)
+                this
+                    .click('@myYear')
+                    .click('@myMake')
+                    .click('@myModel')
+                    .setValue('#mileage', '867530')
+                    .scrollDownBy(200)
+                    .setValue('#zipcode', '84097')
+                    .pause(1000)
+                this
+                    .checkClick('.button-wrapper')
+                    .pause(1000)
+                    .checkClick('[for="AVPSportUtility4DSelectStyle"]')
+                    .waitForElementPresent('@nextBtn')
+                    .pause(1000)
+                this
+                    .checkClick('@nextBtn')
+                this
+                // if (this.url('https://www.kbb.com/dodge/journey/2015/avp-sport-utility-4d/options/?vehicleid=400621&intent=trade-in-sell&mileage=867530&modalview=false')) {
+                //     this.url('https://www.kbb.com/dodge/journey/2015/avp-sport-utility-4d/options/?vehicleid=400621&intent=trade-in-sell&mileage=213434&modalview=false')
+                // }
+                this
+                    .checkClick('#standardRadio')
+                    .scrollDownBy(200)
+                    .waitForElementPresent('#cbxOptionId6395316')
+                    .checkClick('#cbxOptionId6395316')
+                    .pause(1000)
+                this
+                    .waitForElementPresent('#conditionfair')
+                    .click('#conditionfair')
+                    .waitForElementPresent('#stylesNextButton')
+                    .checkClick('#stylesNextButton')
+                    .pause(9000)
+                this
+                    .waitForElementPresent('[class="icon-heart-outline blue-icon"]')
+                    .checkClick('[class="icon-heart-outline blue-icon"]')
+                return this
+
+            }
+        },
+        {
+            checkClick: function (selector) {
+                this.pause(2000)
+                if (this.verify.elementNotPresent('@popup')) {}
+                else {this.clickButtonByText('No thanks')}
+                this.click(selector)
                 return this
             }
         }
