@@ -2,7 +2,7 @@ module.exports = {
     url: 'https://www.kbb.com',
     elements: {
         //login and Misc Dropdown Menu
-        loginMenu: { selector: '//div[contains(@id, "globalNavIcon")]', locateStrategy: 'xpath' },
+        loginMenu: '#Shape',
         signInPage: '#mykbbSignInLink',
         email: '#loginEmail',
         password: '#loginPassword',
@@ -48,7 +48,7 @@ module.exports = {
         nextBtn: { selector: '//a[text()="Next"]', locateStrategy: 'xpath' },
         //F***ing error popup
         popup: '#fsrInvite',
-        closePopup: '#fsrFocusFirst'
+        closePopup: { selector: '//button[contains(text(), "No thanks")]', locateStrategy: 'xpath' },
     },
     commands: [
         {
@@ -70,7 +70,8 @@ module.exports = {
         {
             logOut: function () {
                 this
-                    .pause(1000)
+                    .api.url()
+                this.pause(1000)
                     .waitForElementVisible('@loginMenu')
                     .click('@loginMenu')
                     .waitForElementVisible('@signOut')
@@ -80,8 +81,7 @@ module.exports = {
                     .click('@loginMenu')
                     .verify.containsText('@signInPage', 'Sign In')
                     .pause(1000)
-                    .click('@loginMenu')
-                    .pause(1000)
+                    .api.url()
                 return this
             }
         },
@@ -197,10 +197,33 @@ module.exports = {
         {
             styleButton: function (text) {
                 this
-                    .useXpath()
-                this
-                    .click(`//div[contains(text(), '${text}')]`)
+                // .isVisible("@popup", result => {
+                //     console.log(result.value)
+                //     if (result.value) { //result.value will be true if present, false otherwise
+                //         this.waitForElementVisible('//button[contains(text(), "No thanks")]')
+                //             .click('//button[contains(text(), "No thanks")]')
+                //     }
+                this.pause(1000)
+                this.useXpath()
+                this.waitForElementVisible(`//div[contains(text(), '${text}')]`)
+                this.click(`//div[contains(text(), '${text}')]`)
                     .useCss()
+                // })
+
+                return this
+            }
+        },
+        {
+            checkClick: function (selector) {
+                let page = this
+                    page.api.isVisible('#fsrInvite', function (result) {
+                        if (!result.value.error) { //result.value will be true if present, false otherwise
+                            page.waitForElementVisible('@closePopup')
+                            .click('@closePopup')
+                        }
+                    })
+                    page.waitForElementVisible(selector)
+                    .click(selector)
                 return this
             }
         },
@@ -252,14 +275,16 @@ module.exports = {
                 this
                     // Get A Cars Value
                     .pause(1000)
+                    // .waitForElementPresent('(//a[@href=“/whats-my-car-worth/“])[1]')
                     .clickButtonByText('Get a Value')
+                    .pause(1000)
                 if (this.api.url('https://www.kbb.com/whats-my-car-worth/?ico=a')) {
                     this.api.url('https://www.kbb.com/whats-my-car-worth/')
                 }
                 this
                     .pause(1000)
                 this
-                    .click('@myYear')
+                    .checkClick('@myYear')
                     .click('@myMake')
                     .click('@myModel')
                     .setValue('#mileage', '867530')
@@ -296,15 +321,20 @@ module.exports = {
                 return this
 
             }
-        },
-        {
-            checkClick: function (selector) {
-                this.pause(2000)
-                if (this.verify.elementNotPresent('@popup')) {}
-                else {this.clickButtonByText('No thanks')}
-                this.click(selector)
-                return this
-            }
+            // },
+            // {
+            //     checkClick: function (selector) {
+            //         this.pause(2000)
+            //         if (this.verify.elementNotPresent('@popup')) { this.click(selector) }
+            //         else {
+            //             this.pause(1000)
+            //             this.click('//button[contains(text(), "No thanks")]')
+            //             this.pause(1000)
+            //             this.click(selector)
+            //         }
+            //         return this
+            //     }
+
         }
     ]
 }
