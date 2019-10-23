@@ -1,8 +1,11 @@
 module.exports = {
     url: 'https://www.kbb.com',
     elements: {
+        //=============================================================================
+        /*                          Josh's Selectors                                 */
+        //=============================================================================
         //login and Misc Dropdown Menu
-        loginMenu: { selector: '//div[contains(@id, "globalNavIcon")]', locateStrategy: 'xpath' },
+        loginMenu: '#Shape',
         signInPage: '#mykbbSignInLink',
         email: '#loginEmail',
         password: '#loginPassword',
@@ -25,7 +28,9 @@ module.exports = {
         updtZip: { selector: '//input[contains(@name, "zipcode")]', locateStrategy: 'xpath' },
         ownVeh: '#myKBBOwn',
         savVeh: '#myKBBSavedVehicles',
-        //Tony's Selectors
+        //=============================================================================
+        /*                          Tony's Selectors                                 */
+        //=============================================================================
         certPreOwned: '#cpoVehicle',
         used: '#usedVehicle',
         new: '#newVehicle',
@@ -48,9 +53,12 @@ module.exports = {
         nextBtn: { selector: '//a[text()="Next"]', locateStrategy: 'xpath' },
         //F***ing error popup
         popup: '#fsrInvite',
-        closePopup: '#fsrFocusFirst'
+        closePopup: { selector: '//button[contains(text(), "No thanks")]', locateStrategy: 'xpath' },
     },
     commands: [
+        //=============================================================================
+        /*                          Josh's Commands                                  */
+        //=============================================================================
         {
             logIn: function (loginInfo) {
                 this
@@ -70,7 +78,8 @@ module.exports = {
         {
             logOut: function () {
                 this
-                    .pause(1000)
+                    .api.url()
+                this.pause(1000)
                     .waitForElementVisible('@loginMenu')
                     .click('@loginMenu')
                     .waitForElementVisible('@signOut')
@@ -80,11 +89,11 @@ module.exports = {
                     .click('@loginMenu')
                     .verify.containsText('@signInPage', 'Sign In')
                     .pause(1000)
-                    .click('@loginMenu')
-                    .pause(1000)
+                    .api.url()
                 return this
             }
         },
+        //Command to change the zip code in the menu dropdown.
         {
             changeZipInMenu: function (zip) {
                 this
@@ -112,6 +121,31 @@ module.exports = {
                 return this
             }
         },
+        {
+            navSavedVehicles: function () {
+                this
+                    .waitForElementVisible('@loginMenu')
+                    .click('@loginMenu')
+                    .waitForElementVisible('@myAcc')
+                    .click('@myAcc')
+                    .waitForElementVisible('@savVeh')
+                    .click('@savVeh')
+                return this
+            }
+        },
+        {
+            navOwnedVehicles: function () {
+                this
+                    .waitForElementVisible('@loginMenu')
+                    .click('@loginMenu')
+                    .waitForElementVisible('@myAcc')
+                    .click('@myAcc')
+                    .waitForElementVisible('@ownVeh')
+                    .click('@ownVeh')
+                return this
+            }
+        },
+        //Function changes account info. The fancy stuff makes sure we aren't changing the information to the same info. 
         {
             updateAcctInfo: function (newInfo) {
                 var oldFirst = ''
@@ -150,30 +184,9 @@ module.exports = {
                 return this
             }
         },
-        {
-            navSavedVehicles: function () {
-                this
-                    .waitForElementVisible('@loginMenu')
-                    .click('@loginMenu')
-                    .waitForElementVisible('@myAcc')
-                    .click('@myAcc')
-                    .waitForElementVisible('@savVeh')
-                    .click('@savVeh')
-                return this
-            }
-        },
-        {
-            navOwnedVehicles: function () {
-                this
-                    .waitForElementVisible('@loginMenu')
-                    .click('@loginMenu')
-                    .waitForElementVisible('@myAcc')
-                    .click('@myAcc')
-                    .waitForElementVisible('@ownVeh')
-                    .click('@ownVeh')
-                return this
-            }
-        },
+        //=============================================================================
+        /*                          Tony's Commands                                  */
+        //=============================================================================
         {
             clickButtonByText: function (text) {
                 this
@@ -197,10 +210,34 @@ module.exports = {
         {
             styleButton: function (text) {
                 this
-                    .useXpath()
-                this
-                    .click(`//div[contains(text(), '${text}')]`)
+                // .isVisible("@popup", result => {
+                //     console.log(result.value)
+                //     if (result.value) { //result.value will be true if present, false otherwise
+                //         this.waitForElementVisible('//button[contains(text(), "No thanks")]')
+                //             .click('//button[contains(text(), "No thanks")]')
+                //     }
+                this.pause(1000)
+                this.useXpath()
+                this.waitForElementVisible(`//div[contains(text(), '${text}')]`)
+                this.click(`//div[contains(text(), '${text}')]`)
                     .useCss()
+                // })
+
+                return this
+            }
+        },
+        {
+            //Click to check for and close random popup, then continue with a normal click.
+            checkClick: function (selector) {
+                let page = this
+                page.api.isVisible('#fsrInvite', function (result) {
+                    if (!result.value.error) { //result.value will be true if present, false otherwise
+                        page.waitForElementVisible('@closePopup')
+                            .click('@closePopup')
+                    }
+                })
+                page.waitForElementVisible(selector)
+                    .click(selector)
                 return this
             }
         },
@@ -211,6 +248,9 @@ module.exports = {
                 return this
             }
         },
+        //=============================================================================
+        /*          Tony's Tests formated as commands for easy integration           */
+        //=============================================================================
         {
             findCarValue: function () {
                 // Get A Value Any Car
@@ -253,13 +293,14 @@ module.exports = {
                     // Get A Cars Value
                     .pause(1000)
                     .clickButtonByText('Get a Value')
+                    .pause(1000)
                 if (this.api.url('https://www.kbb.com/whats-my-car-worth/?ico=a')) {
                     this.api.url('https://www.kbb.com/whats-my-car-worth/')
                 }
                 this
                     .pause(1000)
                 this
-                    .click('@myYear')
+                    .checkClick('@myYear')
                     .click('@myMake')
                     .click('@myModel')
                     .setValue('#mileage', '867530')
@@ -274,10 +315,6 @@ module.exports = {
                     .pause(1000)
                 this
                     .checkClick('@nextBtn')
-                this
-                // if (this.url('https://www.kbb.com/dodge/journey/2015/avp-sport-utility-4d/options/?vehicleid=400621&intent=trade-in-sell&mileage=867530&modalview=false')) {
-                //     this.url('https://www.kbb.com/dodge/journey/2015/avp-sport-utility-4d/options/?vehicleid=400621&intent=trade-in-sell&mileage=213434&modalview=false')
-                // }
                 this
                     .checkClick('#standardRadio')
                     .scrollDownBy(200)
@@ -295,15 +332,6 @@ module.exports = {
                     .checkClick('[class="icon-heart-outline blue-icon"]')
                 return this
 
-            }
-        },
-        {
-            checkClick: function (selector) {
-                this.pause(2000)
-                if (this.verify.elementNotPresent('@popup')) {}
-                else {this.clickButtonByText('No thanks')}
-                this.click(selector)
-                return this
             }
         }
     ]
