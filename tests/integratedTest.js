@@ -1,4 +1,4 @@
-var loginInfo = { user: 'jtaylor.rk@gmail.com', pass: 't3stpass' }
+var loginInfo = { user: 't3stpass@gmail.com', pass: 'T3stingpas$' }
 var fs = require("fs")
 require('../utilities/oldProfInfo')
 var page
@@ -10,8 +10,11 @@ module.exports = {
     after: browser => {
         browser.end()
     },
+    //=============================================================================
+    /*                          Josh's Tests                                     */
+    //=============================================================================
     'login': browser => {
-        //Test (Can I sign in then out of my account?)
+        //Can I sign in then out of my account?
         page
             .logIn(loginInfo)
             .navMyAcct()
@@ -22,7 +25,7 @@ module.exports = {
         //Synv with Old Profile Info json File
         var getInfo = fs.readFileSync('./utilities/oldProfInfo.json')
         var newInfo = JSON.parse(getInfo)
-        //Test (Does my account information persist after logging out and back in?)
+        //Does my account information persist after logging out and back in?
         page
             .logIn(loginInfo)
             .navMyAcct()
@@ -40,18 +43,23 @@ module.exports = {
         var getInfo = fs.readFileSync('./utilities/oldProfInfo.json')
         var newInfo = JSON.parse(getInfo)
         console.log(newInfo.zip)
-        //Test (Changes zip code in profile page, then verifies zip was changed.)
+        //Changes zip code in profile page, then verifies zip was changed.
         page.changeZipInMenu(newInfo.zip)
         page.useXpath()
         page.expect.element(`(//a[contains(text(), "${newInfo.zip}")])[1]`).text.to.equal(newInfo.zip)
         page.useCss()
 },
+    //=============================================================================
+    /*                           Tony's Tests                                    */
+    //=============================================================================
     'Find Value of Car': browser => {
+        //Can I find the value of an owned car I want to buy?
         page
             .logOut()
             .findCarValue()
     },
         'Find Value of MY Car': browser => {
+            //Can I find the value of the car I own and want to sell?
             page
                 .logIn(loginInfo)
                 .myCarValue()
